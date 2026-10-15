@@ -2,9 +2,10 @@
 
 在网页上点格子，板子上 13×8 的 LED 点阵**实时亮起**。
 
-![演示](demo.mp4)
+<img src="demo.gif" alt="演示：左边浏览器控制台，右边 UNO Q 板子，两边同步" width="300">
 
-> 视频：左边是浏览器里的控制台，右边是 UNO Q 板子，两边同步。
+> **演示**：左边是浏览器里的控制台，右边是 UNO Q 板子，两边同步。
+> 完整视频：[demo.mp4](https://github.com/metahubaifeel/uno-q-matrix-console/raw/master/demo.mp4)（8 秒，H.264）
 
 ---
 
@@ -176,7 +177,8 @@ Sketch "..." Has No Default Profile
 
 ```
 .
-├── demo.mp4                  # 演示视频
+├── demo.gif                  # 演示动图
+├── demo.mp4                  # 演示视频（8 秒，H.264）
 ├── firmware/
 │   └── matrix/
 │       ├── sketch.ino        # MCU 侧：接收像素并画到点阵
