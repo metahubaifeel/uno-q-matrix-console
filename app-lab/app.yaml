@@ -1,0 +1,6 @@
+name: Matrix Console
+icon: 🔲
+description: 在网页上点格子，板子上的 LED 点阵实时亮起
+
+bricks:
+  - arduino:web_ui

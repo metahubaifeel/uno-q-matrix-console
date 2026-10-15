@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNO Q 点阵控制台</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#30363d;
+    --text:#e6edf3; --dim:#8b949e; --on:#58a6ff;
+    --glow:rgba(88,166,255,.55);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text); min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap{width:100%;max-width:680px}
+  header{text-align:center;margin-bottom:22px}
+  h1{font-size:24px;font-weight:650;letter-spacing:.5px}
+  .sub{color:var(--dim);font-size:13px;margin-top:5px}
+  #status{display:inline-block;margin-top:11px;padding:5px 14px;border-radius:999px;
+          font-size:12px;font-weight:550;background:rgba(139,148,158,.15);color:var(--dim)}
+  #status.ok{background:rgba(63,185,80,.15);color:#3fb950}
+  #status.err{background:rgba(248,81,73,.15);color:#f85149}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(13,1fr);gap:6px;padding:18px;
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    margin-bottom:16px;user-select:none;touch-action:none;
+  }
+  .cell{
+    aspect-ratio:1;border-radius:50%;background:#21262d;border:1px solid #2d333b;
+    cursor:pointer;transition:background .08s,box-shadow .08s,transform .08s;
+  }
+  .cell:hover{border-color:var(--on);transform:scale(1.12)}
+  .cell.on{background:var(--on);border-color:#79c0ff;
+           box-shadow:0 0 9px var(--glow),0 0 18px var(--glow)}
+
+  .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:11px}
+  button{
+    background:var(--panel);color:var(--text);border:1px solid var(--border);
+    padding:9px 19px;border-radius:8px;font-size:14px;font-family:inherit;
+    cursor:pointer;transition:background .13s,border-color .13s;
+  }
+  button:hover{background:#21262d;border-color:var(--on)}
+  .preset{padding:7px 14px;font-size:13px}
+  .hint{text-align:center;color:var(--dim);font-size:12.5px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>点阵控制台</h1>
+    <p class="sub">Arduino UNO Q · 13 × 8 · 104 颗灯</p>
+    <div id="status">就绪</div>
+  </header>
+
+  <div id="grid" class="grid"></div>
+
+  <div class="row">
+    <button id="clear">清空</button>
+    <button id="fill">全亮</button>
+    <button id="invert">反色</button>
+  </div>
+
+  <div class="row">
+    <button class="preset" data-p="flag">★ 五星红旗</button>
+    <button class="preset" data-p="star">★ 五角星</button>
+    <button class="preset" data-p="heart">♥ 爱心</button>
+    <button class="preset" data-p="smile">☺ 笑脸</button>
+    <button class="preset" data-p="wave">〰 波浪</button>
+  </div>
+
+  <p class="hint">点格子 → 板子上对应的小灯立刻亮</p>
+</div>
+
+<script>
+const COLS=13, ROWS=8, N=COLS*ROWS;
+let px=new Array(N).fill(0), drawing=false, drawVal=1, lastSent='';
+
+const grid=document.getElementById('grid');
+const statusEl=document.getElementById('status');
+const cells=[];
+
+for(let i=0;i<N;i++){
+  const d=document.createElement('div');
+  d.className='cell'; d.dataset.i=i;
+  grid.appendChild(d); cells.push(d);
+}
+
+function render(){
+  for(let i=0;i<N;i++) cells[i].classList.toggle('on', px[i]===1);
+}
+
+function send(force){
+  const s=px.join('');
+  if(!force && s===lastSent) return;
+  lastSent=s;
+  statusEl.textContent='发送中…'; statusEl.className='';
+  fetch('/api/pixels',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({pixels:s})
+  }).then(r=>r.json()).then(r=>{
+    if(r.ok){ statusEl.textContent='已同步'; statusEl.className='ok'; }
+    else { statusEl.textContent='出错: '+r.error; statusEl.className='err'; }
+  }).catch(e=>{
+    statusEl.textContent='连不上板子'; statusEl.className='err';
+  });
+}
+
+grid.addEventListener('pointerdown',e=>{
+  const c=e.target.closest('.cell'); if(!c) return;
+  const i=+c.dataset.i;
+  drawVal = px[i]===1 ? 0 : 1;
+  px[i]=drawVal; cells[i].classList.toggle('on',drawVal===1);
+  send();
+  drawing=true; grid.setPointerCapture(e.pointerId);
+});
+grid.addEventListener('pointermove',e=>{
+  if(!drawing) return;
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  if(!el||!el.classList.contains('cell')) return;
+  const i=+el.dataset.i;
+  if(px[i]!==drawVal){ px[i]=drawVal; cells[i].classList.toggle('on',drawVal===1); send(); }
+});
+['pointerup','pointercancel'].forEach(ev=>grid.addEventListener(ev,()=>drawing=false));
+
+document.getElementById('clear').onclick =()=>{px.fill(0);render();send()};
+document.getElementById('fill').onclick  =()=>{px.fill(1);render();send()};
+document.getElementById('invert').onclick=()=>{px=px.map(v=>v?0:1);render();send()};
+
+const PRESETS={
+  // 五星红旗：左边大星，右边四颗小星
+  flag:[
+    "0000000000000",
+    "0011100011000",
+    "0111110011000",
+    "1111111000000",
+    "0011100000000",
+    "0000001100110",
+    "0000001100110",
+    "0000000000000",
+  ],
+  star:[
+    "0000001000000",
+    "0000011100000",
+    "1111111111111",
+    "0111111111110",
+    "0011111111100",
+    "0111000001110",
+    "1100000000011",
+    "0000000000000",
+  ],
+  heart:[
+    "0000000000000",
+    "0011000011000",
+    "0111100111100",
+    "1111111111110",
+    "1111111111110",
+    "0111111111100",
+    "0011111111000",
+    "0001111110000",
+  ],
+  smile:[
+    "0000000000000",
+    "0011000011000",
+    "0011000011000",
+    "0000000000000",
+    "0100000000010",
+    "0010000000100",
+    "0001111110000",
+    "0000000000000",
+  ],
+  wave:[
+    "0000000000000",
+    "0100010001000",
+    "1010101010100",
+    "0001000100010",
+    "0000000000000",
+    "0010001000100",
+    "0101010101010",
+    "1000100010000",
+  ],
+};
+
+document.querySelectorAll('.preset').forEach(b=>{
+  b.onclick=()=>{
+    const rows=PRESETS[b.dataset.p];
+    if(!rows) return;
+    px=rows.join('').split('').map(Number);
+    render(); send(true);
+  };
+});
+
+render();
+send(true);
+</script>
+</body>
+</html>

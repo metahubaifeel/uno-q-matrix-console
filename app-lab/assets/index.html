@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNO Q 点阵控制台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>点阵控制台</h1>
+      <p class="sub">Arduino UNO Q · 13 × 8</p>
+      <div id="status" class="status offline">连接中…</div>
+    </header>
+
+    <main>
+      <div id="grid" class="grid"></div>
+
+      <div class="tools">
+        <button id="btn-clear" class="btn">清空</button>
+        <button id="btn-invert" class="btn">反色</button>
+        <button id="btn-fill" class="btn">全亮</button>
+      </div>
+
+      <div class="presets">
+        <button class="preset" data-preset="star">★ 五角星</button>
+        <button class="preset" data-preset="heart">♥ 爱心</button>
+        <button class="preset" data-preset="smile">☺ 笑脸</button>
+        <button class="preset" data-preset="flag">五星红旗</button>
+      </div>
+
+      <p class="hint">点格子 → 板子上对应的小灯就亮</p>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

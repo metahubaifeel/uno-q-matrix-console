@@ -1,0 +1,109 @@
+/* UNO Q 点阵控制台 */
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --dim: #8b949e;
+  --on: #58a6ff;
+  --on-glow: rgba(88, 166, 255, 0.55);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.wrap { width: 100%; max-width: 720px; }
+
+header { text-align: center; margin-bottom: 26px; }
+
+h1 { font-size: 25px; font-weight: 650; letter-spacing: 0.5px; }
+
+.sub { color: var(--dim); font-size: 13px; margin-top: 5px; }
+
+.status {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 550;
+}
+.status.online  { background: rgba(63,185,80,.15); color: #3fb950; }
+.status.offline { background: rgba(248,81,73,.15);  color: #f85149; }
+
+/* ---- 点阵 ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  gap: 6px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 18px;
+  user-select: none;
+  touch-action: none;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #21262d;
+  border: 1px solid #2d333b;
+  cursor: pointer;
+  transition: background .09s, box-shadow .09s, transform .09s;
+}
+
+.cell:hover { border-color: var(--on); transform: scale(1.12); }
+
+.cell.on {
+  background: var(--on);
+  border-color: #79c0ff;
+  box-shadow: 0 0 9px var(--on-glow), 0 0 18px var(--on-glow);
+}
+
+/* ---- 按钮 ---- */
+.tools, .presets {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.btn, .preset {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .13s, border-color .13s;
+}
+
+.btn:hover, .preset:hover {
+  background: #21262d;
+  border-color: var(--on);
+}
+
+.preset { padding: 7px 15px; font-size: 13px; }
+
+.hint {
+  text-align: center;
+  color: var(--dim);
+  font-size: 12.5px;
+  margin-top: 16px;
+}
